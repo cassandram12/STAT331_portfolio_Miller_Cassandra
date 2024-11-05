@@ -1,6 +1,6 @@
 ---
 title: "STAT 331 Portfolio"
-author: "Your Name Goes Here"
+author: "Cassandra Miller"
 format: 
   html: 
     self-contained: true
@@ -11,7 +11,7 @@ execute:
   echo: true
 ---
 
-[**My Grade:**]{.underline} I believe my grade equivalent to course work evidenced below to be an __.
+[**My Grade:**]{.underline} I believe my grade equivalent to course work evidenced below to be an B.
 
 [**Learning Objective Evidence:**]{.underline} In the code chunks below, provide code from Lab or Challenge assignments where you believe you have demonstrated proficiency with the specified learning target. Be sure to specify **where** the code came from (e.g., Lab 4 Question 2).
 
@@ -24,28 +24,50 @@ execute:
 ```{r}
 #| label: wd-1-csv
 
+surveys <- read_csv(here("data","surveys.csv"))
+teacher_eval <- read_csv(here("data","teacher_evals.csv"))
 ```
+Lab 2 Q 1. 
+Lab 3 Q 2.
 
 -   `xlsx`
 
 ```{r}
 #| label: wd-1-xlsx
 
+military <- read_xlsx(here::here("data", 
+                                 "gov_spending_per_capita.xlsx"), 
+                      sheet = "Share of Govt. spending", 
+                      skip  = 6, 
+                      n_max = 190)
 ```
+PA 4: Military Spending, Q1.
 
 -   `txt`
 
 ```{r}
 #| label: wd-1-txt
 
+message_data <- read_csv("https://github.com/earobinson95/stat331-calpoly/raw/master/practice-activities/data/scrambled_message.txt")
+
+ages_mystery <- read_delim(file=here::here("Week 2", "Check-ins", "Ages_Data", "ages_mystery.txt"), delim = "|")
+
 ```
+PA5: Decode the secret message Q1.
+Check in 2.3.
 
 **WD-2: I can select necessary columns from a dataset.**
 
 ```{r}
 #| label: wd-2
 
+teacher_evals_clean <- teacher_eval |>
+  rename(sex = gender) |>
+  filter(no_participants>10) |>
+  mutate(teacher_id = as.numeric(teacher_id)) |>
+  select(course_id, teacher_id, question_no, no_participants, resp_share, SET_score_avg, percent_failed_cur, academic_degree, seniority, sex)
 ```
+Lab 3 Question 5.
 
 **WD-3: I can filter rows from a dataframe for a *variety* of data types (e.g., numeric, integer, character, factor, date).**
 
@@ -54,28 +76,55 @@ execute:
 ```{r}
 #| label: wd-3-numeric
 
+library(dplyr)
+library(tidyr)
+
+median_income_by_region <- ca_childcare |> 
+  filter(study_year %in% c(2008, 2018)) |> 
+  group_by(region, study_year) |> 
+  summarise(median_income = median(mhi_2018, na.rm = TRUE), .groups = 'drop') |> 
+  pivot_wider(names_from = study_year, values_from = median_income, names_prefix = "Income_")
+
+print(median_income_by_region)
 ```
+Lab 4 Q4.
 
 -   character -- specifically a string (example must use functions from **stringr**)
 
 ```{r}
 #| label: wd-3-string
 
+license_plate <- drivers_license |>
+  filter(str_detect(plate_number, "H42W"))
 ```
+Lab 5 (No Question numbers).
 
 -   factor
 
 ```{r}
 #| label: wd-3-factor
 
+ca_childcare <- counties |>
+  filter(state_name == "California") |>
+  select(county_fips_code, county_name) |>
+  inner_join(childcare_costs, by = "county_fips_code")
+
 ```
+Lab 4 Q2 - I revised some parts of the lab for this learning target.
 
 -   date (example must use functions from **lubridate**)
 
 ```{r}
 #| label: wd-3-date
 
+crime_scene_report |> 
+  mutate(date = ymd(date)) |> 
+  filter(date == ymd("2018-01-15"), 
+         type == "murder",
+         city == "SQL City"
+         )
 ```
+Lab 5 (No Question numbers), revised.
 
 **WD-4: I can modify existing variables and create new variables in a dataframe for a *variety* of data types (e.g., numeric, integer, character, factor, date).**
 
@@ -84,23 +133,82 @@ execute:
 ```{r}
 #| label: wd-4-numeric
 
+library(dplyr)
+library(tidyverse)
+library(here)
+
+teacher_eval <- read_csv(here("data","teacher_evals.csv"))
+view(teacher_eval)
+
+teacher_evals_compare <- teacher_eval |>
+  filter(question_no == 903) |>
+  mutate(
+    SET_level = ifelse(SET_score_avg >= 4, "excellent", "standard"),  
+    sen_level = ifelse(seniority <= 4, "junior", "senior")   
+  ) |>
+  select(course_id, SET_level, sen_level)
 ```
+Challenge 3 Q1.
 
 -   character -- specifically a string (example must use functions from **stringr**)
 
 ```{r}
 #| label: wd-4-string
 
+suspect_annabel <- franklin |>
+  filter(stringr::str_detect(name, "Annabel"))
+
 ```
+Lab 5, no question numbers.
 
 -   factor (example must use functions from **forcats**)
 
 ```{r}
 #| label: wd-4-factor
 
+library(dplyr)
+library(forcats)
+
+ca_childcare <- ca_childcare |>  
+  mutate(county_name = str_trim(str_remove(county_name, " County"))) |> 
+  mutate(region = fct_collapse(county_name,
+                               
+                               "Superior California"
+                                  = c("Butte", "Colusa", "Del Norte", "Glenn", "Humboldt", "Lassen", "Modoc", "Plumas", "Shasta", "Sierra", "Siskiyou", "Tehama", "Trinity", "Lake", "Mendocino"),
+                               
+                               "San Francisco Bay Area" 
+                                  = c("Alameda", "Contra Costa", "Marin", "Napa", "San Francisco", "San Mateo", "Santa Clara", "Solano", "Sonoma"),
+                               
+                               "Northern San Joaquin Valley"
+                                  = c("San Joaquin", "Stanislaus", "Merced"),
+                               
+                               "Sacramento Area" 
+                                  = c("El Dorado", "Placer", "Sacramento", "Sutter", "Yolo", "Yuba"),
+                               
+                               "Central Coast" 
+                                  = c("Monterey", "San Benito", "San Luis Obispo", "Santa Barbara", "Santa Cruz", "Ventura"),
+                              
+                                "Northern California & Central Sierra"
+                                  = c("Alpine", "Amador", "Calaveras", "Inyo", "Mariposa", "Mono", "Nevada", "Tuolumne"),
+                              
+                                "Southern California" 
+                                  = c("Los Angeles", "Orange", "Riverside", "San Bernardino", "San Diego", "Imperial"),
+                             
+                                 "Central Valley" 
+                                  = c("Fresno", "Kern", "Kings", "Madera", "Tulare"),
+                              
+                                "Inland Empire" 
+                                  = c("Riverside", "San Bernardino"), 
+                           
+                                   "San Diego Area" 
+                                  = c("San Diego", "Imperial")
+         ))
+
 ```
+Lab 4 Q3.
 
 -   date (example must use functions from **lubridate**)
+I do not have this in a lab yet.
 
 ```{r}
 #| label: wd-4-date
@@ -114,23 +222,34 @@ execute:
 ```{r}
 #| label: wd-5-left
 
+sql_city_crime <- crime_scene_report |>
+  left_join(data.frame(city = "SQL City"), by = "city") |>
+  filter(city == "SQL City")
 ```
+Lab 5, no question numbers.
 
 -   `right_join()`
+I do not have this in a lab yet.
 
 ```{r}
-#| label: wd-5-right
 
 ```
+
 
 -   `inner_join()`
 
 ```{r}
 #| label: wd-5-inner
 
+ca_childcare <- counties |>
+  filter(state_name == "California") |>
+  select(county_fips_code, county_name) |>
+  inner_join(childcare_costs, by = "county_fips_code")
 ```
+Lab 4 Q2.
 
 -   `full_join()`
+I do not have this yet in a lab.
 
 ```{r}
 #| label: wd-5-full
@@ -144,9 +263,13 @@ execute:
 ```{r}
 #| label: wd-6-semi
 
+date_df <- data.frame(date = 20180115)
+SQL_murder_date <- semi_join(SQL_murder_only, date_df, by = "date")
 ```
+Lab 5 (No question numbers.)
 
 -   `anti_join()`
+I do not have this yet in a lab.
 
 ```{r}
 #| label: wd-6-anti
@@ -160,14 +283,43 @@ execute:
 ```{r}
 #| label: wd-7-long
 
+ca_childcare |>
+  pivot_longer(mc_infant:mc_preschool,
+               names_to = "Child Category",
+               values_to = "Median Price",
+               names_transform = list(`Child Category` = ~ factor(.x, levels = c("mc_infant", "mc_toddler", "mc_preschool")))) |>
+  group_by(Region, `Child Category`) |>
+  select(Region, study_year, `Child Category`, `Median Price`) |>
+  ggplot(aes(x = study_year, y = `Median Price`)) +
+  geom_point() +
+  geom_smooth(aes(colour = factor(Region), method = "loess")) +
+  facet_wrap(~ `Child Category`) +
+  scale_x_continuous(breaks = seq(2008, 2018, by = 2)) +
+  scale_y_continuous(breaks = seq(100, 700, by = 100), limits = c(100, 500)) +
+  theme(axis.text.x = element_text(angle = 45, hjust = 1)) +
+  labs(x = "Study Year", y = "", title = "Weekly Median Price for Center-Based Childcare ($)", color = "California Region")
+
 ```
+Lab 4 Q6, revised.
 
 -   `pivot_wider()`
 
 ```{r}
 #| label: wd-7-wide
 
+library(dplyr)
+library(tidyr)
+
+median_income_by_region <- ca_childcare |> 
+  filter(study_year %in% c(2008, 2018)) |> 
+  group_by(region, study_year) |> 
+  summarise(median_income = median(mhi_2018, na.rm = TRUE), .groups = 'drop') |> 
+  pivot_wider(names_from = study_year, values_from = median_income, names_prefix = "Income_")
+
+print(median_income_by_region)
+
 ```
+Lab 4 Q4.
 
 ## Reproducibility
 
@@ -175,23 +327,57 @@ execute:
 
 I've done this in the following provided assignments:
 
+Throughout the course, I have demonstrated this learning target across multiple assignments, including Lab 1, Lab 2, and Lab 3, and Lab 4 (after revisions). Beginning in Lab 2, I incorporated the here package to efficiently and reliably read in CSV files. 
+
+I have also focused on streamlining my code for readability and efficiency. For instance, I learned to simplify complex filtering processes by minimizing redundant filter() statements, resulting in cleaner, more concise code.
+
+Additionally, I structured my Quarto documents professionally, using clear headers, well-commented code, and organized sections to guide the reader through my analysis in a logical way. This focus on reproducibility and clarity has enhanced the quality of my analyses, making them more accessible and professional.
+
 **R-2: I can write well documented and tidy code.**
 
 -   Example of **ggplot2** plotting
 
 ```{r}
 #| label: r-2-1
+# This plot visualizes the distribution of rodent weights by species, via boxplots with jittered points.
 
+# Load the ggplot2 library
+library(ggplot2)
+
+# Creating a boxplot with jittered points for the weight distribution of each species
+ggplot(data = surveys, mapping = aes(x = species, y = weight)) +  
+    geom_boxplot(outlier.shape = NA) +  # Boxplot without outliers
+    geom_jitter(width = 0.2, alpha = 0.5, color = "steelblue") +  # Add jittered points 
+    labs(
+        x = "Species",                    # X-axis label
+        y = "Weight (grams)",             # Y-axis label
+        title = "Distribution of Weight by Rodent Species at Portal Study Site"  # Plot title
+    ) +
+    theme(
+        axis.text.x = element_text(angle = 45, hjust = 1)  # Rotate x-axis labels
+    )
 ```
+Lab 1 Q 16, revised.
 
 -   Example of **dplyr** pipeline
 
 ```{r}
 #| label: r-2-2
 
+# This code cleans the teacher evaluation data by renaming, filtering, converting types, and selecting relevant columns
+
+teacher_evals_clean <- teacher_eval |> 
+  rename(sex = gender) |>  # Rename 'gender' column to 'sex'
+  filter(no_participants > 10) |>  # Keep the evaluations with more than 10 participants
+  mutate(teacher_id = as.numeric(teacher_id)) |>  # Convert 'teacher_id' to numeric form 
+  select(course_id, teacher_id, question_no, no_participants, resp_share,  # Select the necessary columns
+         SET_score_avg, percent_failed_cur, academic_degree, seniority, sex)
+
 ```
+Lab 3, Q5, revised to include descriptive comments for clarity.
 
 -   Example of function formatting
+I do not have this in a lab yet.
 
 ```{r}
 #| label: r-2-3
@@ -205,9 +391,23 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: r-3-example
 
+
+lowest_childcare_price_infant <- ca_childcare |>
+  filter(study_year == 2018) |>
+  group_by(region) |>
+  summarise(lowest_median_price_infant = median(mc_infant, na.rm = TRUE)) |>
+  slice_min(lowest_median_price_infant, n = 1)
+
+median_income_by_region <- ca_childcare |>
+  filter(study_year == 2018) |>
+  group_by(region) |>
+  summarise(median_income = median(mhi_2018, na.rm = TRUE)) |>
+  slice_min(median_income, n = 1)
 ```
+Lab 4, Q5, revised.
 
 -   Example of function stops
+I do not have this in a Lab yet.
 
 ```{r}
 #| label: r-3-function-stops
@@ -223,14 +423,67 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: dvs-1-num
 
+library(forcats)
+library(dplyr)
+library(ggplot2)
+
+childcare_graph <- ca_childcare |> 
+  select(study_year, region, mc_infant, mc_toddler, mc_preschool) |> 
+  pivot_longer(cols = starts_with("mc_"), 
+               names_to = "age", 
+               values_to = "median_income") |> 
+  drop_na() |> 
+  mutate(age = fct_recode(age,  
+                          "Infant" = "mc_infant",
+                          "Toddler" = "mc_toddler",
+                          "Preschool" = "mc_preschool")) |> 
+  mutate(age = fct_relevel(age, "Infant", "Toddler", "Preschool"))
+
+ggplot(childcare_graph, aes(x = study_year,
+                            y = median_income,
+                            color = region)) +
+  geom_point(size = 0.5) + 
+  geom_smooth() +  
+  facet_wrap(~ age, scales = "free_y") +  
+  labs(title = "Weekly Median Price for Center-Based Childcare ($)",
+       x = "Study Year",
+       y = "",
+       color = "California Region") +
+  scale_x_continuous(breaks = seq(2008, 2018, by = 2)) +
+  scale_color_brewer(palette = "Accent") +  
+  theme_bw() + 
+  theme(
+    axis.text.x = element_text(angle = 45, size = 10), 
+    axis.text.y = element_text(size = 10),  
+    plot.title = element_text(size = 14, face = "bold"),  
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 9),
+    aspect.ratio = 3/2
+  )
 ```
+Lab 4, Q6.
 
 -   at least one numeric variable and one categorical variable
 
 ```{r}
 #| label: dvs-2-num-cat
 
+library(ggplot2)
+
+ggplot(data = surveys,
+       mapping = aes(x = weight, y = species)) + 
+    geom_boxplot(outlier.shape = NA) + 
+    geom_jitter(width = 0.2, alpha = 0.5, color = "steelblue") + 
+    labs(
+        x = "Weight (grams) of Rodent",            
+        y = "Species of Rodent",                    
+        title = "Distribution of Weight by Rodent Species Found Within Plots at the Portal Study Site"
+    ) +
+    theme(
+        axis.text.y = element_text(angle = 45, hjust = 1) 
+        )
 ```
+Lab 1, Q15.
 
 -   at least two categorical variables
 
@@ -253,17 +506,94 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: dvs-2-1
 
+library(forcats)
+library(dplyr)
+library(ggplot2)
+
+childcare_graph <- ca_childcare |> 
+  select(study_year, region, mc_infant, mc_toddler, mc_preschool) |> 
+  pivot_longer(cols = starts_with("mc_"), 
+               names_to = "age", 
+               values_to = "median_income") |> 
+  drop_na() |> 
+  mutate(age = fct_recode(age,  
+                          "Infant" = "mc_infant",
+                          "Toddler" = "mc_toddler",
+                          "Preschool" = "mc_preschool")) |> 
+  mutate(age = fct_relevel(age, "Infant", "Toddler", "Preschool"))
+
+ggplot(childcare_graph, aes(x = study_year,
+                            y = median_income,
+                            color = region)) +
+  geom_point(size = 0.5) + 
+  geom_smooth() +  
+  facet_wrap(~ age, scales = "free_y") +  
+  labs(title = "Weekly Median Price for Center-Based Childcare ($)",
+       x = "Study Year",
+       y = "",
+       color = "California Region") +
+  scale_x_continuous(breaks = seq(2008, 2018, by = 2)) +
+  scale_color_brewer(palette = "Accent") +  
+  theme_bw() + 
+  theme(
+    axis.text.x = element_text(angle = 45, size = 10), 
+    axis.text.y = element_text(size = 10),  
+    plot.title = element_text(size = 14, face = "bold"),  
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 9),
+    aspect.ratio = 3/2
+  )
 ```
+
+Lab 4, Q6.
 
 -   I can modify the text in my plot to be more readable
 
 ```{r}
 #| label: dvs-2-2
 
+library(forcats)
+library(dplyr)
+library(ggplot2)
+
+childcare_graph <- ca_childcare |> 
+  select(study_year, region, mc_infant, mc_toddler, mc_preschool) |> 
+  pivot_longer(cols = starts_with("mc_"), 
+               names_to = "age", 
+               values_to = "median_income") |> 
+  drop_na() |> 
+  mutate(age = fct_recode(age,  
+                          "Infant" = "mc_infant",
+                          "Toddler" = "mc_toddler",
+                          "Preschool" = "mc_preschool")) |> 
+  mutate(age = fct_relevel(age, "Infant", "Toddler", "Preschool"))
+
+ggplot(childcare_graph, aes(x = study_year,
+                            y = median_income,
+                            color = region)) +
+  geom_point(size = 0.5) + 
+  geom_smooth() +  
+  facet_wrap(~ age, scales = "free_y") +  
+  labs(title = "Weekly Median Price for Center-Based Childcare ($)",
+       x = "Study Year",
+       y = "",
+       color = "California Region") +
+  scale_x_continuous(breaks = seq(2008, 2018, by = 2)) +
+  scale_color_brewer(palette = "Accent") +  
+  theme_bw() + 
+  theme(
+    axis.text.x = element_text(angle = 45, size = 10), 
+    axis.text.y = element_text(size = 10),  
+    plot.title = element_text(size = 14, face = "bold"),  
+    legend.title = element_text(size = 10),
+    legend.text = element_text(size = 9),
+    aspect.ratio = 3/2
+  )
 ```
+Lab 4, Q6. (Changing X and Y axis, and altering the order with fct_reorder)
 
 -   I can reorder my legend to align with the colors in my plot
-
+I do not have this yet.
 ```{r}
 #| label: dvs-2-3
 
@@ -276,9 +606,27 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: dvs-3-1
 
+library(ggplot2)
+library(ggridges)
+
+ggplot(data = surveys, mapping = aes(x = weight, y = species)) +
+  geom_density_ridges(alpha = 0.5, fill = "steelblue") +
+  geom_jitter(width = 0.2, alpha = 0.5, color = "darkgray") +  
+  labs(
+    x = "Weight (grams)",
+    y = "Species",
+    title = "Density Distribution of Weight by Animal Species",
+    subtitle = "Data collected from plots at the Portal Study Site"  #
+  ) +
+  theme(
+    axis.text.y = element_text(hjust = 1) 
+  )
+
 ```
+Challenge 2, Medium.
 
 -   I can use annotations
+I do not have this yet.
 
 ```{r}
 #| label: dvs-3-2
@@ -290,7 +638,25 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: dvs-3-3
 
+library(ggplot2)
+library(ggridges)
+
+ggplot(data = surveys, mapping = aes(x = weight, y = species)) +
+  geom_density_ridges(alpha = 0.5, fill = "steelblue") +
+  geom_jitter(width = 0.2, alpha = 0.5, color = "darkgray") +  
+  labs(
+    x = "Weight (grams)",
+    y = "Species",
+    title = "Density Distribution of Weight by Animal Species",
+    subtitle = "Data collected from plots at the Portal Study Site"  
+  ) +
+  theme(
+    axis.text.y = element_text(hjust = 1)  
+  )
+
+
 ```
+Challenge 2, Medium.
 
 **DVS-4: I can calculate numerical summaries of variables.**
 
@@ -299,10 +665,18 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: dvs-4-summarize
 
+library(dplyr)
+
+teacher_evals_clean |> 
+  group_by(teacher_id, course_id) |> 
+  summarize(num_questions = n_distinct(question_no), .groups = 'drop') |> 
+  filter(num_questions == 9) |> 
+  summarize(total_combinations = n())
 ```
+Lab 3 Q9.
 
 -   Example using `across()`
-
+I do not have this yet.
 ```{r}
 #| label: dvs-4-across
 
@@ -315,14 +689,38 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: dvs-5-1
 
+teacher_evals_clean |> 
+  summarize(
+    unique_instructors = n_distinct(teacher_id),
+    unique_courses = n_distinct(course_id)
+  )
+
 ```
+Lab 3, Q6.
 
 -   Example 2
 
 ```{r}
 #| label: dvs-5-2
 
+library(dplyr)
+library(tidyr)
+
+lowest_childcare_price_infant <- ca_childcare |>
+  filter(study_year == 2018) |>
+  group_by(region) |>
+  summarise(lowest_median_price_infant = median(mc_infant, na.rm = TRUE)) |>
+  slice_min(lowest_median_price_infant, n = 1)
+
+median_income_by_region <- ca_childcare |>
+  filter(study_year == 2018) |>
+  group_by(region) |>
+  summarise(median_income = median(mhi_2018, na.rm = TRUE)) |>
+  slice_min(median_income, n = 1)
+
+lowest_childcare_price_infant
 ```
+Lab 4, Q5. 
 
 **DVS-6: I can create tables which make my summaries clear to the reader.**
 
@@ -331,14 +729,22 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: dvs-6-1
 
+species_mod <- aov(weight~species, data = surveys)
+summary(species_mod)
+
 ```
+Lab 1, Q17.
 
 -   Example 2
 
 ```{r}
 #| label: dvs-6-2
 
+reg_mod1 <- lm(mc_infant ~ mhi_2018, data = median_income_vs_childcare_cost)
+summary(reg_mod1)
+
 ```
+Lab 4, Q8.
 
 **DVS-7: I show creativity in my tables.**
 
@@ -347,7 +753,21 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: dvs-7-1
 
+library(ggplot2)
+library(ggridges)
+
+ggplot(data = surveys, mapping = aes(x = weight, y = species)) +
+  geom_density_ridges(alpha = 0.5, fill = "steelblue") +
+  labs(
+    x = "Weight (grams)",
+    y = "Species",
+    title = "Density Distribution of Weight by Animal Species Found Within Plots at the Portal Study Site"
+  ) +
+  theme(
+    axis.text.y = element_text(angle = 45, hjust = 1)
+  )
 ```
+Challenge 2, Medium.
 
 -   Example 2
 
@@ -365,9 +785,17 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: pe-1-one-call
 
+Jeremy_women <- drivers_license |>
+  filter(height %in% c(65,67),
+         hair_color == "red",
+         car_model == "Model S",
+         car_make == "Tesla")
+
 ```
+Lab 5, no question numbers.
 
 -   `across()`
+I do not have this in a lab yet.
 
 ```{r}
 #| label: pe-1-across
@@ -375,6 +803,7 @@ I've done this in the following provided assignments:
 ```
 
 -   `map()` functions
+I do not have this in a lab yet.
 
 ```{r}
 #| label: pe-1-map-1
@@ -384,6 +813,7 @@ I've done this in the following provided assignments:
 **PE-2: I can write functions to reduce repetition in my code.**
 
 -   Function that operates on vectors
+I do not have this in a lab yet.
 
 ```{r}
 #| label: pe-2-1
@@ -391,6 +821,7 @@ I've done this in the following provided assignments:
 ```
 
 -   Function that operates on data frames
+I do not have this in a lab yet.
 
 ```{r}
 #| label: pe-2-2
@@ -400,6 +831,7 @@ I've done this in the following provided assignments:
 **PE-3:I can use iteration to reduce repetition in my code.**
 
 -   `across()`
+I do not have this in a lab yet.
 
 ```{r}
 #| label: pe-3-across
@@ -407,6 +839,7 @@ I've done this in the following provided assignments:
 ```
 
 -   `map()` function with **one** input (e.g., `map()`, `map_chr()`, `map_dbl()`, etc.)
+I do not have this in a lab yet.
 
 ```{r}
 #| label: pe-3-map-1
@@ -414,6 +847,8 @@ I've done this in the following provided assignments:
 ```
 
 -   `map()` function with **more than one** input (e.g., `map_2()` or `pmap()`)
+I do not have this in a lab yet.
+
 
 ```{r}
 #| label: pe-3-map-2
@@ -427,18 +862,46 @@ I've done this in the following provided assignments:
 ```{r}
 #| label: pe-4-1
 
+library(dplyr)
+
+missing_data <- teacher_evals_clean |> 
+  filter(if_any(everything(), is.na))
+
+missing_data
 ```
+Lab 3, Q7.
 
 -   I can connect a data wrangling pipeline into a `ggplot()`
 
 ```{r}
 #| label: pe-4-2
 
+library(ggplot2)
+library(dplyr)
+library(scales)
+
+median_income_vs_childcare_cost <- ca_childcare |> 
+  select(region, mhi_2018, mc_infant) |> 
+  drop_na()
+
+ggplot(median_income_vs_childcare_cost, aes(x = mhi_2018, y = mc_infant)) + 
+  geom_point(size = 1.5, color = "blue") + 
+  geom_smooth(method = "lm", se = TRUE, color = "red") + 
+  labs(
+    title = "Relationship Between Household Income and Infant Childcare Costs (2018)",
+    x = "Median Household Income (USD)",
+    y = NULL 
+  ) + 
+  scale_x_continuous(labels = label_dollar()) + 
+  scale_y_continuous(labels = label_dollar()) +  
+  theme_minimal()
 ```
+Lab 4, Q7.
 
 ## Data Simulation & Statisical Models
 
 **DSSM-1: I can simulate data from a *variety* of probability models.**
+I do not have this yet.
 
 -   Example 1
 
@@ -460,28 +923,61 @@ I've done this in the following provided assignments:
 
 ```{r}
 #| label: dsm-2-1
-
+t_test <- t.test(ToothGrowth$len ~ ToothGrowth$supp, 
+                         var.equal = FALSE, 
+                         alternative = "two.sided")
+print(t_test)
 ```
+
+H0: The treatment mean tooth length for the OJ supplement delivery method is the same as the treatment mean tooth length for the VC supplement delivery method.
+H1: The treatment mean tooth length for the OJ supplement delivery method is different from the treatment mean tooth length for the VC supplement delivery method.
+
+The p-value from the test is 0.06063, which is greater then the common significance level of 0.05, meaning we fail to reject the null hypothesis. We can not conclude that the treatment mean tooth length for the OJ supplement delivery method is different from the mean tooth length for the VC supplement delivery method.
+
+The confidence level that is used by default is 0.95, and the confidence level given to us from the t test is [ -0.1710156, 7.5710156]. We can be 95% confidence that the true difference in mean tooth lengths between OJ and VC groups lies within this range. But this rangfe includes 0, so it suggests that there is no statistically significant difference in mean tooth lengths between the groups at the 95% confidence level
+
+Lab 1 - Q 10 -14.
 
 -   Example 2
 
 ```{r}
 #| label: dsm-2-2
+species_mod <- aov(weight~species, data = surveys)
+summary(species_mod)
 
 ```
+
+Based on the results of the ANOVA F-test above, we can see the P value (<2e-16) is significantly lower than the common alpha level of 0.05, therefor we will reject the null hypothesis that the population mean weight is the same between all 14 rodent species. Therefor we can conclude the alternative hypothesis is true, that at least one rodent species has a different population mean weight.
+
+Lab 2- Q17
 
 ## Revising My Thinking
 
 <!-- How did you revise your thinking throughout the course? How did you revise your thinking on the code examples you have provided in your portfolio? -->
 
-<!-- For the revisions included in your Portfolio, to help me understand the nature of your revisions, please denote somehow the feedback I provided you (e.g., boldface, italics, colored text) before your revisions. -->
+Through every assignment so far (labs and challenges), I have consistently gone back to complete revisions. I find this revisions very important for reinforcing my understanding. I really appreciate how Dr. Theobold provides detailed feedback on what we did incorrectly and what could be improved. When I take the time to revisit my previous labs or challenges and read through the comments, I’m able to reflect on why I initially coded it that way and understand what I missed. I then revise my code, solidifying my learning while also improving the lab for future reference. In the portfolio, I’ve had to make even more revisions beyond those from the labs. Reviewing the learning targets and fully grasping what they mean has led me to revisit previous labs, finding ways to code more efficiently or to use a different tool. Overall, the revision aspect of this class has significantly enhanced my learning. Without this process, I might be less likely to review my previous work after receiving grades.
+
+<!-- For the revisions included in your Portfolio, to help me understand the nature of your revisions, please denote somehow the feedback I provided you (e.g., boldface, italics, colored text) before your revisions. --> Done
 
 ## Extending My Thinking
 
 <!-- How did you extended your thinking throughout the course? How did you extend your thinking on the code examples you have provided in your portfolio? -->
 
+In this course, extending one's thinking is very important for success and continuous learning. I make sure to complete all pre-class activities, do the readings, and take thorough notes in class. I also enjoy re-typing the examples used in class and incorporating them into new R projects to improve understanding, and going back to previous assignments and improving my efficiency. When I don’t understand a concept or receive feedback on my labs, I clarify through Dr. Theobold, the TA, my peers, or additional reading. Throughout the portfolio, I have had to extend my thinking in various ways, especially when revisiting previous labs to correct mistakes and meet the learning targets. Overall, I am constantly looking to extend my thinking in this course and to learn new R tools and ways to make my code more efficient.
+
 ## Peer Support & Collaboration
 
-<!-- Include an image or a description of feedback you gave that you are proud of (either in a peer review or in Discord). -->
+This was my Code Review for a Peer for Lab2: 
+
+You did a great job on this assignment! The way you formatted the code is tidy and you use consistent formatting. Some points of review: 
+1) A professional looking report should not display messages about reading in the data or loading in package. These messages are not useful for the reader and make your document look cluttered.
+Can you use Quarto formatting options to suppress the messages from loading in the tidyverse package?
+2) I believe you skipped step 4 and went right to faceting the data by species. It is more beneficial to include the steps of the graph transformation!
+3) I would include more detail on your axis throughout the graphs, this can help the reader get a better understanding of what the graph is saying. 
+4) I believe Q8 is missing "Q8: Move y-axis to Title"
+5) You did the anova code correctly, I would explain more in the analysis. 
+Overall you did a great job!
 
 <!-- Include a description of how you grew as a collaborator through the weekly pair programming activities.   -->
+
+Through the weekly pair programming activities, I grew as a collaborator in many ways. With only one coder at a time, it became very important to communicate effectively with my partner, clearly articulate my analysis and thinking, and fully understand the work being done. These partner activities helped me by forcing me to explain concepts and topics to my partner and, in turn, learn a lot from them as well. We worked well together and learned the importance of patience, making sure we both understood each previous step and the reasoning behind it before moving forward, as well as keeping an open mind. There are often multiple ways to complete the same coding task, and discussing options and learning from each other lead to lots of growth, new ideas, and new knowledge. This experience has improved my collaboration skills and increased my interest in working with my partners and peers.
