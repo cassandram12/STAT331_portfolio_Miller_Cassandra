@@ -9,3 +9,11 @@ editor: visual
 -   Focus specifically on data science concepts and the skills we employed in learning them, not a laundry list of topics that you learned (those are in the syllabus, so I know them already).
 
 -   Focus on a small number of specific areas of growth for you that happened in STAT 331. Identify at least one artifact in your portfolio that illustrates each area of growth and explain how this artifact shows growth in the way you are describing.
+
+Throughout STAT 331, I have grown significantly in my understanding and use of data science concepts. I've learned to really value the importance of keeping my analysis and code clear, efficient, and easy to reproduce. Here are two key areas where I’ve improved.
+
+My main area of growth has been in transforming and manipulating data using the dplyr package. I had some previous R experience prior to this class, but I would rely on very repetitive and less efficient methods for tasks such as filtering, selecting, and grouping in a very repetitive manner. Through repetition, practice, and feedback, I now write concise pipelines and use functions such as `across()` and `case_when()` to improve efficiency. An example of this is in Lab 4 Q4 (WD-3-numeric), where I calculated the median household income by region for specific years. In this code, I grouped data efficiently, reduced redundancy, and pivoted it to a clearer format.
+
+Another area of growth is creating clear and engaging visualizations. As stated above, I had previous R experience, and when it came to graphing, I would use very plain default plots. Throughout this quarter, I learned how to adjust themes, rotate axis labels, add annotations, and use non-standard color palettes. Overall I started looking at graphs with the outlook of making it "pretty" and simple to interpret for the reader. My work on DVS-3-1, the Lab 2 challenge, demonstrates my creativity in visualizations. I used the viridis color palette and replaced the redundant legend.
+
+The skills I have learned throughout this course will help me in my future profession and guide me as I advance in the field of data science and analytics.

@@ -15,3 +15,11 @@ As we’ve said in the class efficiency is a pivotal component of statistical co
 -   Why is efficiency important?
 
 -   Where did you encounter efficiency, and what were some [“a-ha” moments](https://www.merriam-webster.com/dictionary/aha%20moment) you had about efficiency? (For the latter, tie each a-ha moment to an artifact in the portfolio.)
+
+Efficiency, in general, means achieving a desired outcome with the least amount of wasted time, effort, or resources. Efficiency in statistical computing means achieving results using the simplest, most concise code possible. Efficient code minimizes redundancy, is easy to read and understand, and avoids extra steps or unnecessary intermediate objects.
+
+In data science, efficiency looks like writing streamlined code that avoids repetition and leverages functions designed for specific tasks. Tools like across() and case_when() simplify complex operations. Using reproducible workflows and clear documentation ensure that your process is both efficient and transparent.
+
+Efficiency allows you to spend less time writing, understanding, and debugging code, and more time interpreting results. It also speeds up tasks and makes collaboration with other data scientists much easier.
+
+I encountered efficiency when working with functions. In Lab 7 Q4 (PE-2-1), I created a `rescale_01()` function to normalize numeric vectors to a 0-1 scale. My "a-ha" moment came when I realized how reusable this function was across different datasets. Instead of writing repetitive code for this task, I developed reproducible and efficient code that could be applied consistently.
